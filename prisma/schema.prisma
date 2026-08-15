@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  defaultModel  String    @default("gemini-3.6-flash")
+  studyField    String?
+
+  companies    Company[]
+  projects     Project[]
+  chats        Chat[]
+  tasks        Task[]
+  agents       Agent[]
+}
+
+model Company {
+  id        String    @id @default(cuid())
+  name      String
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id        String    @id @default(cuid())
+  name      String
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  company   Company?  @relation(fields: [companyId], references: [id])
+  companyId String?
+  chats     Chat[]
+  tasks     Task[]
+  createdAt DateTime  @default(now())
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String
+  systemPrompt String
+  defaultModel String
+  owner        User     @relation(fields: [ownerId], references: [id])
+  ownerId      String
+  chats        Chat[]
+  createdAt    DateTime @default(now())
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+  title     String    @default("New chat")
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  project   Project?  @relation(fields: [projectId], references: [id])
+  projectId String?
+  agent     Agent?    @relation(fields: [agentId], references: [id])
+  agentId   String?
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  title     String
+  status    String    @default("todo")
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  project   Project?  @relation(fields: [projectId], references: [id])
+  projectId String?
+  createdAt DateTime  @default(now())
+}
+
