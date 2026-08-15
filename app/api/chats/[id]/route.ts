@@ -16,6 +16,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json(chat);
 }
 
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { title } = await req.json();
+  if (!title || !title.trim()) return NextResponse.json({ error: "Title required" }, { status: 400 });
+
+  const chat = await prisma.chat.update({
+    where: { id, ownerId: session.user.id },
+    data: { title: title.trim() },
+  });
+  return NextResponse.json(chat);
+}
+
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,3 +39,4 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   await prisma.chat.delete({ where: { id, ownerId: session.user.id } });
   return NextResponse.json({ success: true });
 }
+

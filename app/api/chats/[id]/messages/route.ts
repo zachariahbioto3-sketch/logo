@@ -32,7 +32,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await prisma.chat.update({ where: { id }, data: { title } });
   }
 
-  const history = [...chat.messages, { role: "user", content }];
+  const recentHistory = [...chat.messages, { role: "user", content }].slice(-20);
 
   const basePrompt =
     chat.agent?.systemPrompt ||
@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     ? `${basePrompt}\n\n${contextLines.join(" ")}`
     : basePrompt;
 
-  const geminiHistory = history.map((m) => ({
+  const geminiHistory = recentHistory.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
     parts: [{ text: m.content }],
   }));
@@ -75,9 +75,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           data: { chatId: id, role: "assistant", content: fullText },
         });
         await prisma.chat.update({ where: { id }, data: { updatedAt: new Date() } });
-      } catch (err) {
-        controller.enqueue(encoder.encode("\n\n[Error generating response]"));
+        await prisma.usageLog.create({
+          data: { userId: session.user.id, model: "gemini-3.6-flash" },
+        });
+      } catch (err: unknown) {
         console.error(err);
+        const message = err instanceof Error ? err.message : String(err);
+        const isRateLimit = message.includes("429") || message.toLowerCase().includes("quota") || message.toLowerCase().includes("resource_exhausted");
+        const isOverloaded = message.includes("503") || message.toLowerCase().includes("overloaded") || message.toLowerCase().includes("unavailable");
+
+        const errorText = isRateLimit
+          ? "\n\n__ERROR__:You've hit the free usage limit for today. Try again later, or switch to Gemini 3.5 Flash-Lite which has a separate quota."
+          : isOverloaded
+          ? "\n\n__ERROR__:Gemini's servers are busy right now. Try again in a moment."
+          : "\n\n__ERROR__:Something went wrong generating a response. Please try again.";
+
+        controller.enqueue(encoder.encode(errorText));
       } finally {
         controller.close();
       }
@@ -88,3 +101,4 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }
+

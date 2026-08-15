@@ -65,6 +65,13 @@ export default function ChatPage() {
         const { done, value } = await reader.read();
         if (done) break;
         assistantText += decoder.decode(value, { stream: true });
+
+        if (assistantText.includes("__ERROR__:")) {
+          const [before, errPart] = assistantText.split("__ERROR__:");
+          showToast(errPart.trim());
+          assistantText = before.trim();
+        }
+
         setMessages((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = { id: "temp-assistant", role: "assistant", content: assistantText };
@@ -115,33 +122,35 @@ export default function ChatPage() {
             Start the conversation below.
           </p>
         )}
-        {messages.map((m, i) => (
-          <div key={m.id + i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
-                m.role === "user"
-                  ? "bg-[var(--nicole-text)] text-white whitespace-pre-wrap"
-                  : "bg-white border border-[var(--nicole-border)]"
-              }`}
-            >
-              {m.role === "assistant" ? (
-                m.content ? (
-                  <div className="prose prose-sm max-w-none prose-headings:font-medium prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-strong:font-semibold prose-hr:my-3">
-                    <ReactMarkdown remarkGfm={[remarkGfm]}>{m.content}</ReactMarkdown>
-                  </div>
-                ) : streaming && i === messages.length - 1 ? (
-                  <span className="inline-flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--nicole-text-muted)] animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--nicole-text-muted)] animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--nicole-text-muted)] animate-bounce" />
-                  </span>
-                ) : null
-              ) : (
-                m.content
-              )}
+        {messages.map((m, i) => {
+          const isLastAssistant = m.role === "assistant" && i === messages.length - 1;
+          const isActivelyStreaming = streaming && isLastAssistant;
+
+          return (
+            <div key={m.id + i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                  m.role === "user"
+                    ? "bg-[var(--nicole-text)] text-white whitespace-pre-wrap"
+                    : "bg-white border border-[var(--nicole-border)]"
+                }`}
+              >
+                {m.role === "assistant" ? (
+                  m.content ? (
+                    <div className="prose prose-sm max-w-none prose-headings:font-medium prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-strong:font-semibold prose-hr:my-3 prose-table:text-xs prose-th:bg-[var(--nicole-cream)] prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-th:border prose-td:border prose-th:border-[var(--nicole-border)] prose-td:border-[var(--nicole-border)]">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      {isActivelyStreaming && <span className="nicole-cursor" />}
+                    </div>
+                  ) : isActivelyStreaming ? (
+                    <span className="nicole-shimmer-text font-medium">Nicole is thinking...</span>
+                  ) : null
+                ) : (
+                  m.content
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={bottomRef} />
       </div>
 
@@ -172,7 +181,7 @@ export default function ChatPage() {
             <button
               onClick={() => sendMessage()}
               disabled={streaming}
-              className="w-7 h-7 rounded-full bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50"
+              className={`w-7 h-7 rounded-full bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50 ${streaming ? "animate-pulse" : ""}`}
             >
               <ArrowUpIcon className="w-3.5 h-3.5" />
             </button>
@@ -182,3 +191,6 @@ export default function ChatPage() {
     </div>
   );
 }
+
+
+

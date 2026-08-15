@@ -88,3 +88,10 @@ model Task {
   createdAt DateTime  @default(now())
 }
 
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  model     String
+  createdAt DateTime @default(now())
+}

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, TrashIcon, CpuChipIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, CpuChipIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import ConfirmDelete from "@/components/ConfirmDelete";
 import { useToast } from "@/components/Toast";
 import { SkeletonCard } from "@/components/Skeleton";
 
@@ -11,6 +12,7 @@ type Agent = { id: string; name: string; systemPrompt: string; defaultModel: str
 const presetExamples = [
   { name: "Case Study Tutor", systemPrompt: "You are a clinical reasoning tutor. Walk students through cases using differential diagnosis, asking guiding questions rather than giving answers immediately." },
   { name: "Board Exam Coach", systemPrompt: "You are a USMLE-style exam coach. Generate practice questions with explanations, and identify knowledge gaps based on the student answers." },
+  { name: "the blind spot", systemPrompt: "H AVING the whole being illuminated, walking in the fulness of the light—this is the special point of the text. How many of us realise the splendid privilege? Many are wholly blind concerning spiritual realities, and many believers see only imperfectly, intermittently, partially.Of these latter we now propose to speak"}
 ];
 
 export default function AgentsPage() {
@@ -154,9 +156,7 @@ export default function AgentsPage() {
                   <CpuChipIcon className="w-5 h-5 text-[var(--nicole-text-muted)] mt-0.5" />
                   <p className="text-sm font-medium">{a.name}</p>
                 </div>
-                <button onClick={() => deleteAgent(a.id)} className="text-[var(--nicole-text-muted)] hover:text-red-500">
-                  <TrashIcon className="w-4 h-4" />
-                </button>
+                <ConfirmDelete onConfirm={() => deleteAgent(a.id)} />
               </div>
               <p className="text-xs text-[var(--nicole-text-muted)] mt-2 line-clamp-2 flex-1">{a.systemPrompt}</p>
               <div className="flex items-center justify-between mt-3">
@@ -177,3 +177,4 @@ export default function AgentsPage() {
     </>
   );
 }
+

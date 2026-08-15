@@ -16,6 +16,9 @@ import {
   PowerIcon,
   Bars3Icon,
   XMarkIcon,
+  TrashIcon,
+  ClockIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import SearchModal from "./SearchModal";
 import { useToast } from "./Toast";
@@ -39,12 +42,14 @@ export default function Sidebar() {
   const [recentsLoading, setRecentsLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [nearLimit, setNearLimit] = useState(false);
 
   const loadRecents = async () => {
     try {
       const res = await fetch("/api/chats");
       if (!res.ok) throw new Error();
-      setRecents(await res.json());
+      const data: Chat[] = await res.json();
+      setRecents(data.slice(0, 6));
     } catch {
       showToast("Couldn't load recent chats");
     } finally {
@@ -52,8 +57,22 @@ export default function Sidebar() {
     }
   };
 
+  const checkUsage = async () => {
+    try {
+      const res = await fetch("/api/usage");
+      if (!res.ok) return;
+      const data = await res.json();
+      setNearLimit(data.nearDailyLimit || data.nearRpmLimit);
+    } catch {}
+  };
+
   useEffect(() => { loadRecents(); }, [pathname]);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    checkUsage();
+    const interval = setInterval(checkUsage, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const startNewChat = async () => {
     try {
@@ -63,6 +82,21 @@ export default function Sidebar() {
       router.push(`/chat/${chat.id}`);
     } catch {
       showToast("Couldn't start a new chat");
+    }
+  };
+
+  const deleteChat = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const prev = recents;
+    setRecents(recents.filter((r) => r.id !== id));
+    try {
+      const res = await fetch(`/api/chats/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      if (pathname === `/chat/${id}`) router.push("/");
+    } catch {
+      setRecents(prev);
+      showToast("Couldn't delete chat");
     }
   };
 
@@ -104,6 +138,17 @@ export default function Sidebar() {
             <MagnifyingGlassIcon className="w-4 h-4" /> Search
           </button>
           <Link
+            href="/usage"
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+              pathname === "/usage" ? "bg-white font-medium" : "text-[var(--nicole-text-muted)] hover:bg-white"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <ChartBarIcon className="w-4 h-4" /> Usage
+            </span>
+            {nearLimit && <span className="w-2 h-2 rounded-full bg-amber-500" />}
+          </Link>
+          <Link
             href="/customize"
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
               pathname === "/customize" ? "bg-white font-medium" : "text-[var(--nicole-text-muted)] hover:bg-white"
@@ -128,9 +173,12 @@ export default function Sidebar() {
         </nav>
 
         <div className="px-4 pt-4 flex-1 overflow-y-auto">
-          <p className="text-xs font-medium text-[var(--nicole-text-muted)] px-3 mb-2 tracking-wide">
-            RECENTS
-          </p>
+          <div className="flex items-center justify-between px-3 mb-2">
+            <p className="text-xs font-medium text-[var(--nicole-text-muted)] tracking-wide">RECENTS</p>
+            <Link href="/history" className="text-xs text-[var(--nicole-text-muted)] hover:text-[var(--nicole-text)] flex items-center gap-1">
+              <ClockIcon className="w-3 h-3" /> See all
+            </Link>
+          </div>
           <div className="space-y-1">
             {recentsLoading && (
               <>
@@ -145,11 +193,17 @@ export default function Sidebar() {
               <Link
                 key={r.id}
                 href={`/chat/${r.id}`}
-                className={`block text-left px-3 py-2 rounded-lg hover:bg-white transition-colors ${
+                className={`group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white transition-colors ${
                   pathname === `/chat/${r.id}` ? "bg-white" : ""
                 }`}
               >
-                <p className="text-sm font-medium truncate">{r.title}</p>
+                <p className="text-sm font-medium truncate flex-1 min-w-0">{r.title}</p>
+                <button
+                  onClick={(e) => deleteChat(r.id, e)}
+                  className="opacity-0 group-hover:opacity-100 text-[var(--nicole-text-muted)] hover:text-red-500 shrink-0 ml-2 transition-opacity"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                </button>
               </Link>
             ))}
           </div>

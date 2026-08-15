@@ -14,7 +14,7 @@ const cards = [
 
 export default function QuickStart() {
   return (
-    <div className="grid grid-cols-2 gap-3 w-full max-w-2xl">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
       {cards.map(({ Icon, title, subtitle }) => (
         <button
           key={title}
@@ -28,3 +28,4 @@ export default function QuickStart() {
     </div>
   );
 }
+

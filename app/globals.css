@@ -17,3 +17,32 @@ body {
   background: var(--nicole-bg);
 }
 
+@keyframes nicole-blink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.nicole-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--nicole-text);
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: nicole-blink 1s step-end infinite;
+}
+
+@keyframes nicole-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.nicole-shimmer-text {
+  background: linear-gradient(90deg, var(--nicole-text-muted) 25%, var(--nicole-text) 50%, var(--nicole-text-muted) 75%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: nicole-shimmer 1.8s ease-in-out infinite;
+}
