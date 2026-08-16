@@ -46,3 +46,9 @@ body {
   color: transparent;
   animation: nicole-shimmer 1.8s ease-in-out infinite;
 }
+
+@media print {
+  aside, nav { display: none !important; }
+  body { background: white; }
+  .prose { max-width: 100% !important; }
+}

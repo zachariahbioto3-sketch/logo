@@ -1,8 +1,10 @@
 import { defineConfig } from "prisma/config";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: "file:./dev.db",
+    url: process.env.DATABASE_URL!,
+    adapter: () => new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
   },
 });

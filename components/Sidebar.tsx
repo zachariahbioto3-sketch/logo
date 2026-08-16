@@ -19,6 +19,8 @@ import {
   TrashIcon,
   ClockIcon,
   ChartBarIcon,
+  PaperClipIcon,
+  RectangleStackIcon,
 } from "@heroicons/react/24/outline";
 import SearchModal from "./SearchModal";
 import { useToast } from "./Toast";
@@ -29,6 +31,8 @@ const navItems = [
   { label: "Tasks", href: "/tasks", Icon: CheckCircleIcon },
   { label: "Agents", href: "/agents", Icon: CpuChipIcon },
   { label: "Study Groups", href: "/study-groups", Icon: UserGroupIcon },
+  { label: "Files", href: "/files", Icon: PaperClipIcon },
+  { label: "Flashcards", href: "/flashcards", Icon: RectangleStackIcon },
 ];
 
 type Chat = { id: string; title: string };

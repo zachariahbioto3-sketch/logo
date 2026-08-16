@@ -1,116 +1,149 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusIcon, UserGroupIcon } from "@heroicons/react/24/outline";
-import ConfirmDelete from "@/components/ConfirmDelete";
+import Link from "next/link";
+import { PlusIcon, UserGroupIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/Toast";
-import { SkeletonCard } from "@/components/Skeleton";
 
-type Group = { id: string; name: string; projects: { id: string }[] };
+type Member = { id: string; name: string | null; email: string };
+type Group = { id: string; name: string; inviteCode: string; _count: { members: number }; members: { user: Member }[] };
 
 export default function StudyGroupsPage() {
   const { showToast } = useToast();
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [name, setName] = useState("");
+  const [owned, setOwned] = useState<Group[]>([]);
+  const [joined, setJoined] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [joining, setJoining] = useState(false);
 
   const load = async () => {
     try {
       const res = await fetch("/api/study-groups");
-      if (!res.ok) throw new Error();
-      setGroups(await res.json());
-    } catch {
-      showToast("Couldn't load study groups");
-    } finally {
-      setLoading(false);
-    }
+      const data = await res.json();
+      setOwned(data.owned || []);
+      setJoined(data.joined || []);
+    } catch { showToast("Could not load groups"); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
-
-  const createGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || submitting) return;
-    setSubmitting(true);
+  const create = async () => {
+    if (!newName.trim() || creating) return;
+    setCreating(true);
     try {
       const res = await fetch("/api/study-groups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: newName.trim() }),
       });
       if (!res.ok) throw new Error();
-      setName("");
-      await load();
-      showToast("Study group created", "success");
-    } catch {
-      showToast("Couldn't create study group");
-    } finally {
-      setSubmitting(false);
-    }
+      setNewName("");
+      load();
+    } catch { showToast("Could not create group"); }
+    finally { setCreating(false); }
   };
 
-  const deleteGroup = async (id: string) => {
-    const prev = groups;
-    setGroups(groups.filter((g) => g.id !== id));
+  const join = async () => {
+    if (!inviteCode.trim() || joining) return;
+    setJoining(true);
     try {
-      const res = await fetch(`/api/study-groups/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-    } catch {
-      setGroups(prev);
-      showToast("Couldn't delete study group");
-    }
+      const res = await fetch("/api/study-groups/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: inviteCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast("Joined " + data.groupName);
+      setInviteCode("");
+      load();
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Could not join group");
+    } finally { setJoining(false); }
   };
+
+  useEffect(() => { load(); }, []);
+
+  const GroupCard = ({ g }: { g: Group }) => (
+    <Link
+      href={"/study-groups/" + g.id}
+      className="flex items-center justify-between p-4 rounded-2xl border border-[var(--nicole-border)] bg-white hover:border-[var(--nicole-peach)] transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[var(--nicole-peach-light)] flex items-center justify-center">
+          <UserGroupIcon className="w-5 h-5 text-[var(--nicole-text-muted)]" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">{g.name}</p>
+          <p className="text-xs text-[var(--nicole-text-muted)]">{g._count.members} member{g._count.members !== 1 ? "s" : ""}</p>
+        </div>
+      </div>
+    </Link>
+  );
 
   return (
-    <div>
-      <h1 className="text-2xl font-medium mb-6">Study Groups</h1>
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold">Study Groups</h1>
+        <p className="text-sm text-[var(--nicole-text-muted)] mt-1">Collaborate with classmates, share agents, and study together.</p>
+      </div>
 
-      <form onSubmit={createGroup} className="flex flex-col sm:flex-row gap-2 mb-6 max-w-md">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="New study group name"
-          className="flex-1 border border-[var(--nicole-border)] rounded-lg px-3 py-2 text-sm outline-none"
-        />
-        <button
-          type="submit"
-          disabled={submitting}
-          className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-1 disabled:opacity-50"
-        >
-          <PlusIcon className="w-4 h-4" /> {submitting ? "Adding..." : "Add"}
-        </button>
-      </form>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="flex gap-2">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") create(); }}
+            placeholder="New group name..."
+            className="flex-1 text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none"
+          />
+          <button
+            onClick={create}
+            disabled={!newName.trim() || creating}
+            className="w-9 h-9 rounded-xl bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50"
+          >
+            <PlusIcon className="w-4 h-4" />
+          </button>
+        </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
+        <div className="flex gap-2">
+          <input
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") join(); }}
+            placeholder="Invite code..."
+            className="flex-1 text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none"
+          />
+          <button
+            onClick={join}
+            disabled={!inviteCode.trim() || joining}
+            className="w-9 h-9 rounded-xl border border-[var(--nicole-border)] flex items-center justify-center disabled:opacity-50 hover:bg-[var(--nicole-cream)]"
+          >
+            <ArrowRightOnRectangleIcon className="w-4 h-4" />
+          </button>
         </div>
-      ) : groups.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-[var(--nicole-border)] rounded-2xl">
-          <UserGroupIcon className="w-8 h-8 text-[var(--nicole-text-muted)] mx-auto mb-2" />
-          <p className="text-sm text-[var(--nicole-text-muted)]">No study groups yet.</p>
-          <p className="text-xs text-[var(--nicole-text-muted)] mt-1">Create one to organize shared projects with classmates.</p>
+      </div>
+
+      {loading && <p className="text-sm text-[var(--nicole-text-muted)]">Loading...</p>}
+
+      {!loading && owned.length === 0 && joined.length === 0 && (
+        <p className="text-sm text-center text-[var(--nicole-text-muted)] py-16">No groups yet. Create one or join with an invite code.</p>
+      )}
+
+      {owned.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-medium text-[var(--nicole-text-muted)] uppercase tracking-wider mb-3">Your groups</p>
+          <div className="space-y-2">{owned.map((g) => <GroupCard key={g.id} g={g} />)}</div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {groups.map((g) => (
-            <div key={g.id} className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white flex items-start justify-between">
-              <div className="flex items-start gap-2 min-w-0">
-                <UserGroupIcon className="w-5 h-5 text-[var(--nicole-text-muted)] mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{g.name}</p>
-                  <p className="text-xs text-[var(--nicole-text-muted)]">{g.projects.length} project(s)</p>
-                </div>
-              </div>
-              <ConfirmDelete onConfirm={() => deleteGroup(g.id)} className="shrink-0" />
-            </div>
-          ))}
+      )}
+
+      {joined.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-[var(--nicole-text-muted)] uppercase tracking-wider mb-3">Joined</p>
+          <div className="space-y-2">{joined.map((g) => <GroupCard key={g.id} g={g} />)}</div>
         </div>
       )}
     </div>
   );
 }
-
