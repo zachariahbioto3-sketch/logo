@@ -159,7 +159,7 @@ export default function StudyGroupPage() {
         <p className="text-xs font-medium text-[var(--nicole-text-muted)] uppercase tracking-wider mb-3">Members ({group.members.length})</p>
         <div className="space-y-2">
           {group.members.map((m) => (
-            <div key={m.user.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--nicole-border)] bg-white">
+            <div key={m.user.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
               <div>
                 <p className="text-sm font-medium">{m.user.name || m.user.email}</p>
                 <p className="text-xs text-[var(--nicole-text-muted)]">{m.user.email}</p>
@@ -170,7 +170,7 @@ export default function StudyGroupPage() {
                     <select
                       value={m.role}
                       onChange={(e) => changeRole(m.user.id, e.target.value)}
-                      className="text-xs border border-[var(--nicole-border)] rounded-lg px-2 py-1 bg-white outline-none"
+                      className="text-xs border border-[var(--nicole-border)] rounded-lg px-2 py-1 bg-[var(--nicole-cream)] outline-none"
                     >
                       <option value="member">Member</option>
                       <option value="moderator">Moderator</option>
@@ -219,7 +219,7 @@ export default function StudyGroupPage() {
             <select
               value={agentModel}
               onChange={(e) => setAgentModel(e.target.value)}
-              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-white"
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-cream)]"
             >
               <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
               <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
@@ -227,7 +227,7 @@ export default function StudyGroupPage() {
             <button
               onClick={addAgent}
               disabled={addingAgent || !agentName.trim() || !agentPrompt.trim()}
-              className="w-full py-2 rounded-xl bg-[var(--nicole-text)] text-white text-sm disabled:opacity-50"
+              className="w-full py-2 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] text-sm disabled:opacity-50"
             >
               {addingAgent ? "Adding..." : "Add shared agent"}
             </button>
@@ -240,7 +240,7 @@ export default function StudyGroupPage() {
 
         <div className="space-y-2">
           {group.agents.map((a) => (
-            <div key={a.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--nicole-border)] bg-white">
+            <div key={a.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
               <div>
                 <p className="text-sm font-medium">{a.name}</p>
                 <p className="text-xs text-[var(--nicole-text-muted)] truncate max-w-xs">{a.systemPrompt}</p>

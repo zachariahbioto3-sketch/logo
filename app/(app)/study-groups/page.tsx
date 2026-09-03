@@ -68,7 +68,7 @@ export default function StudyGroupsPage() {
   const GroupCard = ({ g }: { g: Group }) => (
     <Link
       href={"/study-groups/" + g.id}
-      className="flex items-center justify-between p-4 rounded-2xl border border-[var(--nicole-border)] bg-white hover:border-[var(--nicole-peach)] transition-colors"
+      className="flex items-center justify-between p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] hover:border-[var(--nicole-peach)] transition-colors"
     >
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[var(--nicole-peach-light)] flex items-center justify-center">
@@ -101,7 +101,7 @@ export default function StudyGroupsPage() {
           <button
             onClick={create}
             disabled={!newName.trim() || creating}
-            className="w-9 h-9 rounded-xl bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50"
+            className="w-9 h-9 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] flex items-center justify-center disabled:opacity-50"
           >
             <PlusIcon className="w-4 h-4" />
           </button>

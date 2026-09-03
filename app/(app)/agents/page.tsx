@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -93,14 +93,14 @@ export default function AgentsPage() {
         <h1 className="text-2xl font-medium">Agents</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm flex items-center gap-1"
+          className="bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] rounded-lg px-4 py-2 text-sm flex items-center gap-1"
         >
           <PlusIcon className="w-4 h-4" /> New agent
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={createAgent} className="mb-6 max-w-xl p-4 rounded-2xl border border-[var(--nicole-border)] bg-white space-y-3">
+        <form onSubmit={createAgent} className="mb-6 max-w-xl p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] space-y-3">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -123,7 +123,7 @@ export default function AgentsPage() {
             <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
           </select>
           <div className="flex gap-2 flex-wrap items-center">
-            <button type="submit" className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm">
+            <button type="submit" className="bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] rounded-lg px-4 py-2 text-sm">
               Create agent
             </button>
             {presetExamples.map((p) => (
@@ -150,7 +150,7 @@ export default function AgentsPage() {
       ) : (
         <div className="grid grid-cols-2 gap-3 max-w-3xl">
           {agents.map((a) => (
-            <div key={a.id} className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white flex flex-col">
+            <div key={a.id} className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] flex flex-col">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2">
                   <CpuChipIcon className="w-5 h-5 text-[var(--nicole-text-muted)] mt-0.5" />
@@ -164,7 +164,7 @@ export default function AgentsPage() {
                 <button
                   onClick={() => startChatWithAgent(a.id)}
                   disabled={startingId === a.id}
-                  className="flex items-center gap-1 text-xs bg-[var(--nicole-text)] text-white rounded-lg px-3 py-1.5 disabled:opacity-50"
+                  className="flex items-center gap-1 text-xs bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] rounded-lg px-3 py-1.5 disabled:opacity-50"
                 >
                   <ChatBubbleLeftRightIcon className="w-3.5 h-3.5" />
                   {startingId === a.id ? "Starting..." : "Start chat"}

@@ -65,7 +65,7 @@ export default function UsagePage() {
       )}
 
       <div className="space-y-6">
-        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white">
+        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium">Today&apos;s usage (all users)</p>
             <p className="text-sm text-[var(--nicole-text-muted)]">{usage.totalToday} / {usage.dailyLimit}</p>
@@ -78,7 +78,7 @@ export default function UsagePage() {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white">
+        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium">Requests in the last minute</p>
             <p className="text-sm text-[var(--nicole-text-muted)]">{usage.lastMinute} / {usage.rpmLimit}</p>
@@ -91,7 +91,7 @@ export default function UsagePage() {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white">
+        <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
           <p className="text-sm font-medium mb-1">Your messages today</p>
           <p className="text-2xl font-medium">{usage.myToday}</p>
         </div>

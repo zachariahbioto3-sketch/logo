@@ -98,7 +98,7 @@ export default function TasksPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-1 disabled:opacity-50"
+          className="bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-1 disabled:opacity-50"
         >
           <PlusIcon className="w-4 h-4" /> {submitting ? "Adding..." : "Add"}
         </button>
@@ -119,7 +119,7 @@ export default function TasksPage() {
       ) : (
         <div className="space-y-2 max-w-2xl">
           {tasks.map((t) => (
-            <div key={t.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-[var(--nicole-border)] bg-white">
+            <div key={t.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]">
               <p className={`text-sm break-words ${t.status === "done" ? "line-through text-[var(--nicole-text-muted)]" : ""}`}>{t.title}</p>
               <div className="flex items-center gap-2 shrink-0">
                 <select

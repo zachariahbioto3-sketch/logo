@@ -134,7 +134,7 @@ export default function StudyPage() {
           <button
             onClick={addCard}
             disabled={adding || !newFront.trim() || !newBack.trim()}
-            className="w-full py-2 rounded-xl bg-[var(--nicole-text)] text-white text-sm disabled:opacity-50"
+            className="w-full py-2 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] text-sm disabled:opacity-50"
           >
             {adding ? "Adding..." : "Add"}
           </button>
@@ -160,7 +160,7 @@ export default function StudyPage() {
 
           <button
             onClick={() => setFlipped((f) => !f)}
-            className="w-full min-h-60 p-8 rounded-2xl border border-[var(--nicole-border)] bg-white text-center cursor-pointer hover:border-[var(--nicole-peach)] transition-colors flex items-center justify-center"
+            className="w-full min-h-60 p-8 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] text-center cursor-pointer hover:border-[var(--nicole-peach)] transition-colors flex items-center justify-center"
           >
             <div>
               <p className="text-xs text-[var(--nicole-text-muted)] mb-4">{flipped ? "Answer" : "Question — tap to reveal"}</p>

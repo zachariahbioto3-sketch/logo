@@ -28,7 +28,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm space-y-4"
+        className="bg-[var(--nicole-cream)] rounded-2xl shadow-lg p-8 w-full max-w-sm space-y-4"
       >
         <h1 className="text-2xl font-semibold text-center">Sign in to Nicole</h1>
         {error && <p className="text-red-500 text-sm">{error}</p>}

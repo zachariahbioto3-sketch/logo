@@ -1,75 +1,268 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useSettings } from "@/lib/settings-context";
+import { useToast } from "@/components/Toast";
+import { useRouter } from "next/navigation";
 
-export default function CustomizePage() {
+const TABS = ["Profile", "AI", "Appearance", "Study", "Data"] as const;
+type Tab = typeof TABS[number];
+
+export default function SettingsPage() {
+  const { settings, update, loading } = useSettings();
+  const { showToast } = useToast();
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("Profile");
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [studyField, setStudyField] = useState("");
-  const [defaultModel, setDefaultModel] = useState("gemini-3.6-flash");
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        setName(data.name || "");
-        setStudyField(data.studyField || "");
-        setDefaultModel(data.defaultModel || "gemini-3.6-flash");
-        setLoading(false);
-      });
-  }, []);
+  useEffect(() => { setName(settings.name || ""); }, [settings.name]);
+  useEffect(() => { setStudyField(settings.studyField || ""); }, [settings.studyField]);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await fetch("/api/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, studyField, defaultModel }),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const save = async (patch: Record<string, unknown>) => {
+    setSaving(true);
+    try {
+      await update(patch as any);
+      showToast("Saved");
+    } catch { showToast("Could not save"); }
+    finally { setSaving(false); }
   };
 
-  if (loading) return <p className="text-sm text-[var(--nicole-text-muted)]">Loading...</p>;
+  const changePassword = async () => {
+    if (!currentPassword || !newPassword) return;
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/settings/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast("Password changed");
+      setCurrentPassword(""); setNewPassword("");
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Failed");
+    } finally { setChangingPassword(false); }
+  };
+
+  const exportData = () => { window.location.href = "/api/settings/export"; };
+
+  const deleteAccount = async () => {
+    if (!deletePassword) return;
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/settings/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      router.push("/login");
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Failed");
+    } finally { setDeletingAccount(false); }
+  };
+
+  if (loading) return <div className="p-8 text-sm text-[var(--nicole-text-muted)]">Loading...</div>;
 
   return (
-    <div className="max-w-md">
-      <h1 className="text-2xl font-medium mb-6">Customize</h1>
-      <form onSubmit={save} className="space-y-4">
-        <div>
-          <label className="text-sm font-medium block mb-1">Name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full border border-[var(--nicole-border)] rounded-lg px-3 py-2 text-sm outline-none"
-          />
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <h1 className="text-xl font-semibold mb-6">Settings</h1>
+      <div className="flex gap-1 mb-8 border-b border-[var(--nicole-border)]">
+        {TABS.map((t) => (
+          <button key={t} onClick={() => setTab(t)}
+            className={"px-4 py-2 text-sm transition-colors -mb-px border-b-2 " +
+              (tab === t ? "border-[var(--nicole-text)] font-medium" : "border-transparent text-[var(--nicole-text-muted)] hover:text-[var(--nicole-text)]")}>
+            {t}
+          </button>
+        ))}
+      </div>
+      {tab === "Profile" && (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Display Name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Email</label>
+            <input value={settings.email} disabled
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-cream)] text-[var(--nicole-text-muted)]" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Field of Study / Year</label>
+            <input value={studyField} onChange={(e) => setStudyField(e.target.value)}
+              placeholder="e.g. 3rd year, Cardiology rotation"
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]" />
+          </div>
+          <button onClick={() => save({ name, studyField })} disabled={saving}
+            className="px-4 py-2 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] text-sm disabled:opacity-50">
+            {saving ? "Saving..." : "Save profile"}
+          </button>
+          <div className="pt-4 border-t border-[var(--nicole-border)] space-y-3">
+            <p className="text-xs font-medium">Change Password</p>
+            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Current password"
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]" />
+            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password (min 8 chars)"
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]" />
+            <button onClick={changePassword} disabled={changingPassword || !currentPassword || !newPassword}
+              className="px-4 py-2 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] text-sm disabled:opacity-50">
+              {changingPassword ? "Changing..." : "Change password"}
+            </button>
+          </div>
         </div>
-        <div>
-          <label className="text-sm font-medium block mb-1">Field of study</label>
-          <input
-            value={studyField}
-            onChange={(e) => setStudyField(e.target.value)}
-            placeholder="e.g. Internal Medicine, 3rd year"
-            className="w-full border border-[var(--nicole-border)] rounded-lg px-3 py-2 text-sm outline-none"
-          />
+      )}
+
+      {tab === "AI" && (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Default Model</label>
+            <select value={settings.defaultModel} onChange={(e) => save({ defaultModel: e.target.value })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Context Limit</label>
+            <select value={settings.contextLimit} onChange={(e) => save({ contextLimit: Number(e.target.value) })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value={10}>10 messages</option>
+              <option value={20}>20 messages</option>
+              <option value={40}>40 messages</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Response Language</label>
+            <select value={settings.language} onChange={(e) => save({ language: e.target.value })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value="en">English</option>
+              <option value="sw">Swahili</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="ar">Arabic</option>
+              <option value="zh">Chinese</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Custom System Prompt</label>
+            <textarea value={settings.customSystemPrompt || ""} onChange={(e) => save({ customSystemPrompt: e.target.value || null })}
+              placeholder="Override Nicole global instructions..." rows={4}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)] resize-none" />
+          </div>
+          <div className="space-y-3">
+            {([["streamResponses", "Stream responses in real-time"], ["autoTitle", "Auto-generate chat titles"]] as [string, string][]).map(([key, label]) => (
+              <div key={key} className="flex items-center justify-between">
+                <span className="text-sm">{label}</span>
+                <button onClick={() => save({ [key]: !settings[key as keyof typeof settings] })}
+                  className={"w-11 h-6 rounded-full transition-colors " + (settings[key as keyof typeof settings] ? "bg-[var(--nicole-text)]" : "bg-[var(--nicole-border)]")}>
+                  <span className={"block w-5 h-5 rounded-full bg-[var(--nicole-cream)] shadow transition-transform mx-0.5 " + (settings[key as keyof typeof settings] ? "translate-x-5" : "translate-x-0")} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-        <div>
-          <label className="text-sm font-medium block mb-1">Default model</label>
-          <select
-            value={defaultModel}
-            onChange={(e) => setDefaultModel(e.target.value)}
-            className="w-full border border-[var(--nicole-border)] rounded-lg px-3 py-2 text-sm outline-none"
-          >
-            <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
-          </select>
+      )}
+
+      {tab === "Appearance" && (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium mb-2">Theme</label>
+            <div className="grid grid-cols-3 gap-2">
+              {["light", "dark", "system"].map((t) => (
+                <button key={t} onClick={() => save({ theme: t })}
+                  className={"py-2.5 rounded-xl text-sm border transition-colors capitalize " +
+                    (settings.theme === t ? "border-[var(--nicole-text)] bg-[var(--nicole-cream)] font-medium" : "border-[var(--nicole-border)] hover:bg-[var(--nicole-cream)]")}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-2">Font Size</label>
+            <div className="grid grid-cols-3 gap-2">
+              {["small", "medium", "large"].map((s) => (
+                <button key={s} onClick={() => save({ fontSize: s })}
+                  className={"py-2.5 rounded-xl text-sm border transition-colors capitalize " +
+                    (settings.fontSize === s ? "border-[var(--nicole-text)] bg-[var(--nicole-cream)] font-medium" : "border-[var(--nicole-border)] hover:bg-[var(--nicole-cream)]")}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Compact message view</span>
+            <button onClick={() => save({ compactView: !settings.compactView })}
+              className={"w-11 h-6 rounded-full transition-colors " + (settings.compactView ? "bg-[var(--nicole-text)]" : "bg-[var(--nicole-border)]")}>
+              <span className={"block w-5 h-5 rounded-full bg-[var(--nicole-cream)] shadow transition-transform mx-0.5 " + (settings.compactView ? "translate-x-5" : "translate-x-0")} />
+            </button>
+          </div>
         </div>
-        <button type="submit" className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm">
-          Save changes
-        </button>
-        {saved && <p className="text-sm text-green-600">Saved.</p>}
-      </form>
+      )}
+
+      {tab === "Study" && (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Usage Warning Threshold</label>
+            <p className="text-xs text-[var(--nicole-text-muted)] mb-2">Show warning badge when usage hits this %</p>
+            <div className="flex items-center gap-3">
+              <input type="range" min={50} max={95} step={5} value={settings.usageWarningThreshold}
+                onChange={(e) => save({ usageWarningThreshold: Number(e.target.value) })} className="flex-1" />
+              <span className="text-sm font-medium w-10">{settings.usageWarningThreshold}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "Data" && (
+        <div className="space-y-6">
+          <div className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] space-y-2">
+            <p className="text-sm font-medium">Export my data</p>
+            <p className="text-xs text-[var(--nicole-text-muted)]">Download all your chats, projects, tasks, agents, and flashcards as JSON.</p>
+            <button onClick={exportData}
+              className="px-4 py-2 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] text-sm hover:bg-[var(--nicole-cream)]">
+              Download export
+            </button>
+          </div>
+          <div className="p-4 rounded-2xl border border-red-200 bg-red-50 space-y-3">
+            <p className="text-sm font-medium text-red-700">Delete account</p>
+            <p className="text-xs text-red-600">Permanently deletes your account and all data. Cannot be undone.</p>
+            {!confirmDelete ? (
+              <button onClick={() => setConfirmDelete(true)}
+                className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm hover:bg-red-600">
+                Delete my account
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Enter your password to confirm"
+                  className="w-full text-sm border border-red-200 rounded-xl px-3 py-2 outline-none bg-[var(--nicole-cream)]" />
+                <div className="flex gap-2">
+                  <button onClick={deleteAccount} disabled={deletingAccount || !deletePassword}
+                    className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm disabled:opacity-50">
+                    {deletingAccount ? "Deleting..." : "Confirm delete"}
+                  </button>
+                  <button onClick={() => { setConfirmDelete(false); setDeletePassword(""); }}
+                    className="px-4 py-2 rounded-xl border border-[var(--nicole-border)] text-sm">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

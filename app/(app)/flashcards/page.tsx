@@ -92,7 +92,7 @@ export default function FlashcardsPage() {
           <select
             value={generateChatId}
             onChange={(e) => setGenerateChatId(e.target.value)}
-            className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 bg-white outline-none"
+            className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 bg-[var(--nicole-cream)] outline-none"
           >
             <option value="">Select a chat...</option>
             {chats.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -100,7 +100,7 @@ export default function FlashcardsPage() {
           <select
             value={generateDeckId}
             onChange={(e) => setGenerateDeckId(e.target.value)}
-            className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 bg-white outline-none"
+            className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 bg-[var(--nicole-cream)] outline-none"
           >
             <option value="">Select a deck...</option>
             {decks.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -108,7 +108,7 @@ export default function FlashcardsPage() {
           <button
             onClick={generate}
             disabled={!generateChatId || !generateDeckId || generating}
-            className="w-full py-2 rounded-xl bg-[var(--nicole-text)] text-white text-sm disabled:opacity-50"
+            className="w-full py-2 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] text-sm disabled:opacity-50"
           >
             {generating ? "Generating..." : "Generate"}
           </button>
@@ -126,7 +126,7 @@ export default function FlashcardsPage() {
         <button
           onClick={createDeck}
           disabled={!newName.trim() || creating}
-          className="w-9 h-9 rounded-xl bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50"
+          className="w-9 h-9 rounded-xl bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] flex items-center justify-center disabled:opacity-50"
         >
           <PlusIcon className="w-4 h-4" />
         </button>
@@ -139,7 +139,7 @@ export default function FlashcardsPage() {
 
       <div className="space-y-3">
         {decks.map((d) => (
-          <div key={d.id} className="flex items-center justify-between p-4 rounded-2xl border border-[var(--nicole-border)] bg-white hover:border-[var(--nicole-peach)] transition-colors group">
+          <div key={d.id} className="flex items-center justify-between p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] hover:border-[var(--nicole-peach)] transition-colors group">
             <Link href={"/flashcards/" + d.id} className="flex-1">
               <p className="font-medium text-sm">{d.name}</p>
               <p className="text-xs text-[var(--nicole-text-muted)] mt-0.5">{d._count.cards} card{d._count.cards !== 1 ? "s" : ""}</p>

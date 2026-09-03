@@ -95,7 +95,7 @@ export default function HistoryPage() {
               {items.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-[var(--nicole-border)] bg-white"
+                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)]"
                 >
                   {editingId === c.id ? (
                     <div className="flex items-center gap-2 flex-1 min-w-0">

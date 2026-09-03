@@ -76,7 +76,7 @@ export default function ProjectsPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="bg-[var(--nicole-text)] text-white rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-1 disabled:opacity-50"
+          className="bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-1 disabled:opacity-50"
         >
           <PlusIcon className="w-4 h-4" /> {submitting ? "Adding..." : "Add"}
         </button>
@@ -97,7 +97,7 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {projects.map((p) => (
-            <div key={p.id} className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-white flex items-start justify-between">
+            <div key={p.id} className="p-4 rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] flex items-start justify-between">
               <div className="flex items-start gap-2 min-w-0">
                 <FolderIcon className="w-5 h-5 text-[var(--nicole-text-muted)] mt-0.5 shrink-0" />
                 <p className="text-sm font-medium truncate">{p.name}</p>

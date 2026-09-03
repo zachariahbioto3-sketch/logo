@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -80,7 +80,7 @@ export default function FilesPage() {
           {files.map((f) => (
             <div
               key={f.id}
-              className="group relative rounded-xl border border-[var(--nicole-border)] bg-white overflow-hidden"
+              className="group relative rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] overflow-hidden"
             >
               {f.attachmentType.startsWith("image/") ? (
                 <img
@@ -111,7 +111,7 @@ export default function FilesPage() {
               <button
                 onClick={() => deleteFile(f.id)}
                 disabled={deleting === f.id}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 rounded-full bg-white border border-[var(--nicole-border)] flex items-center justify-center hover:border-red-400 hover:text-red-500 transition-opacity disabled:opacity-50"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 rounded-full bg-[var(--nicole-cream)] border border-[var(--nicole-border)] flex items-center justify-center hover:border-red-400 hover:text-red-500 transition-opacity disabled:opacity-50"
               >
                 <TrashIcon className="w-3.5 h-3.5" />
               </button>

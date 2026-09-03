@@ -3,49 +3,84 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model User {
-  id               String             @id @default(cuid())
-  email            String             @unique
-  passwordHash     String
-  name             String?
-  createdAt        DateTime           @default(now())
-  defaultModel     String             @default("gemini-3.6-flash")
-  studyField       String?
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  defaultModel String    @default("gemini-3.6-flash")
+  studyField   String?
 
-  companies        Company[]
-  projects         Project[]
-  chats            Chat[]
-  tasks            Task[]
-  agents           Agent[]
-  decks            Deck[]
-  groupMemberships StudyGroupMember[]
+  companies         Company[]
+  projects          Project[]
+  chats             Chat[]
+  tasks             Task[]
+  agents            Agent[]
+  memberships       GroupMembership[]
+  groupPosts        GroupPost[]
+  groupPostLikes    GroupPostLike[]
+  groupPostComments GroupPostComment[]
 }
 
 model Company {
-  id         String             @id @default(cuid())
-  name       String
-  inviteCode String             @unique @default(cuid())
-  owner      User               @relation(fields: [ownerId], references: [id])
-  ownerId    String
-  projects   Project[]
-  members    StudyGroupMember[]
-  agents     Agent[]
-  createdAt  DateTime           @default(now())
+  id        String    @id @default(cuid())
+  name      String
+  joinCode  String    @unique
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  projects  Project[]
+  members   GroupMembership[]
+  posts     GroupPost[]
+  createdAt DateTime  @default(now())
 }
 
-model StudyGroupMember {
+model GroupMembership {
   id       String   @id @default(cuid())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
   group    Company  @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId  String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  role     String   @default("member")
   joinedAt DateTime @default(now())
 
-  @@unique([groupId, userId])
+  @@unique([userId, groupId])
+}
+
+model GroupPost {
+  id        String   @id @default(cuid())
+  group     Company  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  likes    GroupPostLike[]
+  comments GroupPostComment[]
+}
+
+model GroupPostLike {
+  id        String   @id @default(cuid())
+  post      GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime  @default(now())
+
+  @@unique([postId, userId])
+}
+
+model GroupPostComment {
+  id        String   @id @default(cuid())
+  post      GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
 }
 
 model Project {
@@ -67,8 +102,6 @@ model Agent {
   defaultModel String
   owner        User     @relation(fields: [ownerId], references: [id])
   ownerId      String
-  company      Company? @relation(fields: [companyId], references: [id])
-  companyId    String?
   chats        Chat[]
   createdAt    DateTime @default(now())
 }
@@ -100,14 +133,14 @@ model Message {
 }
 
 model Task {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   title     String
-  status    String   @default("todo")
-  owner     User     @relation(fields: [ownerId], references: [id])
+  status    String    @default("todo")
+  owner     User      @relation(fields: [ownerId], references: [id])
   ownerId   String
-  project   Project? @relation(fields: [projectId], references: [id])
+  project   Project?  @relation(fields: [projectId], references: [id])
   projectId String?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model UsageLog {
@@ -115,26 +148,4 @@ model UsageLog {
   userId    String
   model     String
   createdAt DateTime @default(now())
-}
-
-model Deck {
-  id        String      @id @default(cuid())
-  name      String
-  owner     User        @relation(fields: [ownerId], references: [id])
-  ownerId   String
-  cards     Flashcard[]
-  createdAt DateTime    @default(now())
-}
-
-model Flashcard {
-  id          String   @id @default(cuid())
-  front       String
-  back        String
-  deck        Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  deckId      String
-  interval    Int      @default(1)
-  easeFactor  Float    @default(2.5)
-  repetitions Int      @default(0)
-  nextReview  DateTime @default(now())
-  createdAt   DateTime @default(now())
 }

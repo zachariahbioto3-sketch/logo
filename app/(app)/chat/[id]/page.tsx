@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
@@ -238,7 +238,7 @@ export default function ChatPage() {
                 <ArrowDownTrayIcon className="w-3.5 h-3.5" /> Export
               </button>
               {exportOpen && (
-                <div className="absolute right-0 top-7 z-10 bg-white border border-[var(--nicole-border)] rounded-xl shadow-md overflow-hidden text-xs w-40">
+                <div className="absolute right-0 top-7 z-10 bg-[var(--nicole-cream)] border border-[var(--nicole-border)] rounded-xl shadow-md overflow-hidden text-xs w-40">
                   <button
                     onClick={exportMarkdown}
                     className="w-full text-left px-4 py-2.5 hover:bg-[var(--nicole-cream)] transition-colors"
@@ -270,8 +270,8 @@ export default function ChatPage() {
             <div key={m.id + i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm space-y-2 ${
                 m.role === "user"
-                  ? "bg-[var(--nicole-text)] text-white"
-                  : "bg-white border border-[var(--nicole-border)]"
+                  ? "bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)]"
+                  : "bg-[var(--nicole-cream)] border border-[var(--nicole-border)]"
               }`}>
                 {m.attachmentUrl && (
                   <div className="text-xs opacity-75">
@@ -310,7 +310,7 @@ export default function ChatPage() {
             </button>
           </div>
         )}
-        <div className="rounded-2xl border border-[var(--nicole-border)] bg-white p-3">
+        <div className="rounded-2xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] p-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -349,7 +349,7 @@ export default function ChatPage() {
               <button
                 onClick={() => sendMessage()}
                 disabled={streaming || uploading}
-                className={`w-7 h-7 rounded-full bg-[var(--nicole-text)] text-white flex items-center justify-center disabled:opacity-50 ${streaming ? "animate-pulse" : ""}`}
+                className={`w-7 h-7 rounded-full bg-[var(--nicole-btn)] text-[var(--nicole-btn-text)] flex items-center justify-center disabled:opacity-50 ${streaming ? "animate-pulse" : ""}`}
               >
                 <ArrowUpIcon className="w-3.5 h-3.5" />
               </button>
