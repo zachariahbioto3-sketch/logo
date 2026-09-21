@@ -13,6 +13,11 @@ type Settings = {
   language: string;
   customSystemPrompt: string | null;
   defaultDeckId: string | null;
+  defaultAgentId: string | null;
+  temperature: number;
+  maxTokens: number;
+  accentColor: string;
+  dailyStudyGoal: number;
   name: string | null;
   email: string;
   studyField: string | null;
@@ -30,6 +35,11 @@ const defaultSettings: Settings = {
   language: "en",
   customSystemPrompt: null,
   defaultDeckId: null,
+  defaultAgentId: null,
+  temperature: 0.7,
+  maxTokens: 1000,
+  accentColor: "#6366f1",
+  dailyStudyGoal: 20,
   name: null,
   email: "",
   studyField: null,
@@ -51,7 +61,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       .then((r) => r.json())
       .then((data) => {
         setSettings((prev) => ({ ...prev, ...data }));
-        applyTheme(data.theme, data.fontSize);
+        applyTheme(data.theme, data.fontSize, data.accentColor);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -59,7 +69,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const update = async (patch: Partial<Settings>) => {
     const optimistic = { ...settings, ...patch };
     setSettings(optimistic);
-    applyTheme(optimistic.theme, optimistic.fontSize);
+    applyTheme(optimistic.theme, optimistic.fontSize, optimistic.accentColor);
     await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -74,11 +84,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function applyTheme(theme: string, fontSize: string) {
+function applyTheme(theme: string, fontSize: string, accentColor?: string) {
   const root = document.documentElement;
   root.setAttribute("data-theme", theme);
   const sizes: Record<string, string> = { small: "13px", medium: "15px", large: "17px" };
   root.style.setProperty("--nicole-font-size", sizes[fontSize] || "15px");
+  if (accentColor) root.style.setProperty("--nicole-accent", accentColor);
 }
 
 export function useSettings() {

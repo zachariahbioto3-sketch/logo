@@ -106,7 +106,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         });
         await prisma.chat.update({ where: { id }, data: { updatedAt: new Date() } });
         await prisma.usageLog.create({
-          data: { userId: session.user.id, model: activeModel },
+          data: { userId: session.user?.id as string, model: activeModel },
         });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

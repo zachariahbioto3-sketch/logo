@@ -11,8 +11,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   if (!group) return NextResponse.json({ error: "Only the owner can remove members" }, { status: 403 });
   if (userId === session.user.id) return NextResponse.json({ error: "Owner cannot remove themselves" }, { status: 400 });
 
-  await prisma.studyGroupMember.delete({
-    where: { groupId_userId: { groupId: id, userId } },
+  await prisma.groupMembership.delete({
+    where: { userId_groupId: { groupId: id, userId } },
   });
   return NextResponse.json({ success: true });
 }
@@ -28,8 +28,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const group = await prisma.company.findFirst({ where: { id, ownerId: session.user.id } });
   if (!group) return NextResponse.json({ error: "Only the owner can change roles" }, { status: 403 });
 
-  const updated = await prisma.studyGroupMember.update({
-    where: { groupId_userId: { groupId: id, userId } },
+  const updated = await prisma.groupMembership.update({
+    where: { userId_groupId: { groupId: id, userId } },
     data: { role },
   });
   return NextResponse.json(updated);

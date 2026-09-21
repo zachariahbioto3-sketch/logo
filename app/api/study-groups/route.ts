@@ -12,7 +12,7 @@ export async function GET() {
       include: { _count: { select: { members: true } }, members: { include: { user: { select: { id: true, name: true, email: true } } } } },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.studyGroupMember.findMany({
+    prisma.groupMembership.findMany({
       where: { userId: session.user.id, group: { ownerId: { not: session.user.id } } },
       include: {
         group: {
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
   const group = await prisma.company.create({
     data: {
       name: name.trim(),
+      joinCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
       ownerId: session.user.id,
       members: {
         create: { userId: session.user.id, role: "owner" },

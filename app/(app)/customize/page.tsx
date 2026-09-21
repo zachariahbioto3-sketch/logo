@@ -8,6 +8,9 @@ import { useRouter } from "next/navigation";
 const TABS = ["Profile", "AI", "Appearance", "Study", "Data"] as const;
 type Tab = typeof TABS[number];
 
+type Agent = { id: string; name: string };
+type Deck = { id: string; name: string };
+
 export default function SettingsPage() {
   const { settings, update, loading } = useSettings();
   const { showToast } = useToast();
@@ -16,20 +19,29 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [studyField, setStudyField] = useState("");
-
-  useEffect(() => { setName(settings.name || ""); }, [settings.name]);
-  useEffect(() => { setStudyField(settings.studyField || ""); }, [settings.studyField]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [clearingChats, setClearingChats] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  useEffect(() => { setName(settings.name || ""); }, [settings.name]);
+  useEffect(() => { setStudyField(settings.studyField || ""); }, [settings.studyField]);
+
+  useEffect(() => {
+    fetch("/api/agents").then(r => r.json()).then(setAgents).catch(() => {});
+    fetch("/api/decks").then(r => r.json()).then(setDecks).catch(() => {});
+  }, []);
 
   const save = async (patch: Record<string, unknown>) => {
     setSaving(true);
     try {
-      await update(patch as any);
+      await update(patch as never);
       showToast("Saved");
     } catch { showToast("Could not save"); }
     finally { setSaving(false); }
@@ -51,6 +63,17 @@ export default function SettingsPage() {
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : "Failed");
     } finally { setChangingPassword(false); }
+  };
+
+  const clearChats = async () => {
+    setClearingChats(true);
+    try {
+      const res = await fetch("/api/settings/clear-chats", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed");
+      showToast("All chats cleared");
+      setConfirmClear(false);
+    } catch { showToast("Could not clear chats"); }
+    finally { setClearingChats(false); }
   };
 
   const exportData = () => { window.location.href = "/api/settings/export"; };
@@ -86,6 +109,7 @@ export default function SettingsPage() {
           </button>
         ))}
       </div>
+
       {tab === "Profile" && (
         <div className="space-y-5">
           <div>
@@ -130,9 +154,19 @@ export default function SettingsPage() {
             <label className="block text-xs font-medium mb-1.5">Default Model</label>
             <select value={settings.defaultModel} onChange={(e) => save({ defaultModel: e.target.value })}
               className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
-              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Default Agent</label>
+            <select value={settings.defaultAgentId || ""} onChange={(e) => save({ defaultAgentId: e.target.value || null })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value="">None (use Nicole default)</option>
+              {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+            {agents.length === 0 && <p className="text-xs text-[var(--nicole-text-muted)] mt-1">No agents yet — create one in the Agents page.</p>}
           </div>
           <div>
             <label className="block text-xs font-medium mb-1.5">Context Limit</label>
@@ -153,6 +187,26 @@ export default function SettingsPage() {
               <option value="es">Spanish</option>
               <option value="ar">Arabic</option>
               <option value="zh">Chinese</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">
+              Temperature — <span className="text-[var(--nicole-text-muted)]">{settings.temperature} ({settings.temperature < 0.4 ? "Focused" : settings.temperature < 0.8 ? "Balanced" : "Creative"})</span>
+            </label>
+            <input type="range" min={0} max={1} step={0.1} value={settings.temperature}
+              onChange={(e) => save({ temperature: Number(e.target.value) })} className="w-full" />
+            <div className="flex justify-between text-xs text-[var(--nicole-text-muted)] mt-1">
+              <span>Precise</span><span>Creative</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Max Response Length</label>
+            <select value={settings.maxTokens} onChange={(e) => save({ maxTokens: Number(e.target.value) })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value={500}>Short (500 tokens)</option>
+              <option value={1000}>Medium (1000 tokens)</option>
+              <option value={2000}>Long (2000 tokens)</option>
+              <option value={4000}>Very long (4000 tokens)</option>
             </select>
           </div>
           <div>
@@ -201,6 +255,21 @@ export default function SettingsPage() {
               ))}
             </div>
           </div>
+          <div>
+            <label className="block text-xs font-medium mb-2">Accent Color</label>
+            <div className="flex items-center gap-3">
+              {["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899"].map((color) => (
+                <button key={color} onClick={() => save({ accentColor: color })}
+                  style={{ backgroundColor: color }}
+                  className={"w-8 h-8 rounded-full border-2 transition-transform " +
+                    (settings.accentColor === color ? "border-[var(--nicole-text)] scale-110" : "border-transparent hover:scale-105")} />
+              ))}
+              <input type="color" value={settings.accentColor}
+                onChange={(e) => save({ accentColor: e.target.value })}
+                className="w-8 h-8 rounded-full cursor-pointer border border-[var(--nicole-border)]"
+                title="Custom color" />
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-sm">Compact message view</span>
             <button onClick={() => save({ compactView: !settings.compactView })}
@@ -213,6 +282,24 @@ export default function SettingsPage() {
 
       {tab === "Study" && (
         <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Default Flashcard Deck</label>
+            <select value={settings.defaultDeckId || ""} onChange={(e) => save({ defaultDeckId: e.target.value || null })}
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">
+              <option value="">None</option>
+              {decks.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            {decks.length === 0 && <p className="text-xs text-[var(--nicole-text-muted)] mt-1">No decks yet — create one in Flashcards.</p>}
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5">Daily Study Goal</label>
+            <p className="text-xs text-[var(--nicole-text-muted)] mb-2">Cards to review per day</p>
+            <div className="flex items-center gap-3">
+              <input type="range" min={5} max={100} step={5} value={settings.dailyStudyGoal}
+                onChange={(e) => save({ dailyStudyGoal: Number(e.target.value) })} className="flex-1" />
+              <span className="text-sm font-medium w-16">{settings.dailyStudyGoal} cards</span>
+            </div>
+          </div>
           <div>
             <label className="block text-xs font-medium mb-1.5">Usage Warning Threshold</label>
             <p className="text-xs text-[var(--nicole-text-muted)] mb-2">Show warning badge when usage hits this %</p>
@@ -231,9 +318,30 @@ export default function SettingsPage() {
             <p className="text-sm font-medium">Export my data</p>
             <p className="text-xs text-[var(--nicole-text-muted)]">Download all your chats, projects, tasks, agents, and flashcards as JSON.</p>
             <button onClick={exportData}
-              className="px-4 py-2 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-cream)] text-sm hover:bg-[var(--nicole-cream)]">
+              className="px-4 py-2 rounded-xl border border-[var(--nicole-border)] bg-[var(--nicole-bg)] text-sm hover:opacity-80">
               Download export
             </button>
+          </div>
+          <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50 space-y-3">
+            <p className="text-sm font-medium text-amber-700">Clear all chats</p>
+            <p className="text-xs text-amber-600">Permanently deletes all your chat history. Cannot be undone.</p>
+            {!confirmClear ? (
+              <button onClick={() => setConfirmClear(true)}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm hover:bg-amber-600">
+                Clear all chats
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={clearChats} disabled={clearingChats}
+                  className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm disabled:opacity-50">
+                  {clearingChats ? "Clearing..." : "Confirm clear"}
+                </button>
+                <button onClick={() => setConfirmClear(false)}
+                  className="px-4 py-2 rounded-xl border border-[var(--nicole-border)] text-sm">
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
           <div className="p-4 rounded-2xl border border-red-200 bg-red-50 space-y-3">
             <p className="text-sm font-medium text-red-700">Delete account</p>
@@ -247,7 +355,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Enter your password to confirm"
-                  className="w-full text-sm border border-red-200 rounded-xl px-3 py-2 outline-none bg-[var(--nicole-cream)]" />
+                  className="w-full text-sm border border-red-200 rounded-xl px-3 py-2 outline-none bg-white" />
                 <div className="flex gap-2">
                   <button onClick={deleteAccount} disabled={deletingAccount || !deletePassword}
                     className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm disabled:opacity-50">

@@ -106,24 +106,17 @@ def send_message(request, chat_id):
         except Agent.DoesNotExist:
             pass
 
-    # Call Gemini
-    try:
-        model_name = "gemini-2.0-flash" if request.data.get("model") == "Nicole Flash" else "gemini-2.0-flash"
-        model = genai.GenerativeModel(model_name=model_name, system_instruction=system_prompt)
-        chat_session = model.start_chat(history=gemini_history[:-1])
-        response = chat_session.send_message(content)
-        ai_text = response.text
-    except Exception as e:
-        ai_text = f"AI error: {str(e)}"
+    # Model allowlist + selector
+    ALLOWED_MODELS = {
+        "Nicole Pro": "gemini-3.6-flash",
+        "Nicole Flash": "gemini-3.6-flash",
+    }
+    model_name = ALLOWED_MODELS.get(request.data.get("model", "Nicole Pro"), "gemini-2.0-flash")
 
-    # Save AI response
-    ai_msg = Message.objects.create(chat=chat, role="assistant", content=ai_text)
-
-    return Response({
-        "user_message": MessageSerializer(user_msg).data,
-        "ai_message": MessageSerializer(ai_msg).data,
-        "chat_title": chat.title
-    })
+    ALLOWED_MODELS = {
+        "Nicole Pro": "gemini-3.6-flash",
+        "Nicole Flash": "gemini-3.6-flash",
+    }
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
@@ -176,3 +169,9 @@ class FlashcardViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Flashcard.objects.filter(deck__owner=self.request.user)
+
+
+
+
+
+

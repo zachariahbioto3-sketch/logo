@@ -24,6 +24,8 @@ model User {
   groupPosts        GroupPost[]
   groupPostLikes    GroupPostLike[]
   groupPostComments GroupPostComment[]
+  decks             Deck[]
+  settings          UserSettings?
 }
 
 model Company {
@@ -35,6 +37,7 @@ model Company {
   projects  Project[]
   members   GroupMembership[]
   posts     GroupPost[]
+  agents    Agent[]
   createdAt DateTime  @default(now())
 }
 
@@ -44,6 +47,7 @@ model GroupMembership {
   userId   String
   group    Company  @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId  String
+  role     String   @default("member")
   joinedAt DateTime @default(now())
 
   @@unique([userId, groupId])
@@ -102,6 +106,8 @@ model Agent {
   defaultModel String
   owner        User     @relation(fields: [ownerId], references: [id])
   ownerId      String
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id])
   chats        Chat[]
   createdAt    DateTime @default(now())
 }
@@ -148,4 +154,48 @@ model UsageLog {
   userId    String
   model     String
   createdAt DateTime @default(now())
+}
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                 String   @default("light")
+  fontSize              String   @default("medium")
+  compactView           Boolean  @default(false)
+  streamResponses       Boolean  @default(true)
+  autoTitle             Boolean  @default(true)
+  contextLimit          Int      @default(20)
+  usageWarningThreshold Int      @default(80)
+  language              String   @default("en")
+  customSystemPrompt    String?
+  defaultDeckId         String?
+  defaultAgentId        String?
+  temperature           Float    @default(0.7)
+  maxTokens             Int      @default(1000)
+  accentColor           String   @default("#6366f1")
+  dailyStudyGoal        Int      @default(20)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Deck {
+  id        String      @id @default(cuid())
+  name      String
+  owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+  cards     Flashcard[]
+  createdAt DateTime    @default(now())
+}
+
+model Flashcard {
+  id          String   @id @default(cuid())
+  deck        Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deckId      String
+  front       String
+  back        String
+  interval    Int      @default(1)
+  easeFactor  Float    @default(2.5)
+  repetitions Int      @default(0)
+  nextReview  DateTime @default(now())
+  createdAt   DateTime @default(now())
 }

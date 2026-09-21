@@ -8,8 +8,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   const { id } = await params;
 
-  const membership = await prisma.studyGroupMember.findUnique({
-    where: { groupId_userId: { groupId: id, userId: session.user.id } },
+  const membership = await prisma.groupMembership.findUnique({
+    where: { userId_groupId: { groupId: id, userId: session.user.id } },
   });
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
@@ -56,13 +56,13 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ success: true, action: "deleted" });
   }
 
-  const membership = await prisma.studyGroupMember.findUnique({
-    where: { groupId_userId: { groupId: id, userId: session.user.id } },
+  const membership = await prisma.groupMembership.findUnique({
+    where: { userId_groupId: { groupId: id, userId: session.user.id } },
   });
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
-  await prisma.studyGroupMember.delete({
-    where: { groupId_userId: { groupId: id, userId: session.user.id } },
+  await prisma.groupMembership.delete({
+    where: { userId_groupId: { groupId: id, userId: session.user.id } },
   });
   return NextResponse.json({ success: true, action: "left" });
 }

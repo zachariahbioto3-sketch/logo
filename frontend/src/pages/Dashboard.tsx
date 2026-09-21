@@ -115,23 +115,55 @@ export default function Dashboard() {
     setInputPrompt("");
     setSelectedFile(null);
 
+    const streamingId = `streaming-${Date.now()}`;
+    setMessages(prev => ({
+      ...prev,
+      [currentChatId]: [...(prev[currentChatId] || []).filter(m => m.id !== optimisticUser.id), optimisticUser, { id: streamingId, role: "assistant", content: "" }]
+    }));
+
     try {
-      const res = await api.post(`/chats/${currentChatId}/send/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+      const token = localStorage.getItem("access");
+      const response = await fetch(`http://127.0.0.1:8000/api/chats/${currentChatId}/send/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
-      const { user_message, ai_message, chat_title } = res.data;
-      setMessages(prev => ({
-        ...prev,
-        [currentChatId]: [
-          ...(prev[currentChatId] || []).filter(m => m.id !== optimisticUser.id),
-          user_message,
-          ai_message
-        ]
-      }));
-      setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, title: chat_title } : c));
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = JSON.parse(line.slice(6));
+          if (data.chunk) {
+            setMessages(prev => ({
+              ...prev,
+              [currentChatId]: (prev[currentChatId] || []).map(m =>
+                m.id === streamingId ? { ...m, content: m.content + data.chunk } : m
+              )
+            }));
+          }
+          if (data.done) {
+            setMessages(prev => ({
+              ...prev,
+              [currentChatId]: (prev[currentChatId] || []).map(m =>
+                m.id === streamingId ? data.ai_message : m
+              )
+            }));
+            setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, title: data.chat_title } : c));
+          }
+        }
+      }
     } catch (err) {
       const errMsg = { id: Date.now().toString(), role: "assistant", content: "Error getting response. Check your Gemini API key." };
-      setMessages(prev => ({ ...prev, [currentChatId]: [...(prev[currentChatId] || []), errMsg] }));
+      setMessages(prev => ({ ...prev, [currentChatId]: [...(prev[currentChatId] || []).filter(m => m.id !== streamingId), errMsg] }));
     }
     setIsGenerating(false);
   }
@@ -633,3 +665,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

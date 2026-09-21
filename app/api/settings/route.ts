@@ -38,6 +38,8 @@ export async function PATCH(req: Request) {
     "theme", "fontSize", "compactView", "streamResponses",
     "autoTitle", "contextLimit", "usageWarningThreshold",
     "language", "customSystemPrompt", "defaultDeckId",
+    "defaultAgentId", "temperature", "maxTokens",
+    "accentColor", "dailyStudyGoal",
   ];
 
   for (const key of userKeys) {

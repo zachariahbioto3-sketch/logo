@@ -9,15 +9,15 @@ export async function POST(req: Request) {
   const { inviteCode } = await req.json();
   if (!inviteCode?.trim()) return NextResponse.json({ error: "Invite code required" }, { status: 400 });
 
-  const group = await prisma.company.findUnique({ where: { inviteCode: inviteCode.trim() } });
+  const group = await prisma.company.findUnique({ where: { joinCode: inviteCode.trim() } });
   if (!group) return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
 
-  const existing = await prisma.studyGroupMember.findUnique({
-    where: { groupId_userId: { groupId: group.id, userId: session.user.id } },
+  const existing = await prisma.groupMembership.findUnique({
+    where: { userId_groupId: { userId: session.user.id, groupId: group.id } },
   });
   if (existing) return NextResponse.json({ error: "Already a member" }, { status: 400 });
 
-  await prisma.studyGroupMember.create({
+  await prisma.groupMembership.create({
     data: { groupId: group.id, userId: session.user.id, role: "member" },
   });
 

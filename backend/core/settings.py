@@ -1,11 +1,12 @@
-﻿from dotenv import load_dotenv
+﻿import os
+from dotenv import load_dotenv
 load_dotenv()
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-nicole-local-dev-key-change-in-production"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-nicole-local-dev-key-change-in-production")
 
 DEBUG = True
 
@@ -90,4 +91,6 @@ MEDIA_URL = "/uploads/"
 MEDIA_ROOT = BASE_DIR / "uploads"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
 
