@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { GoogleGenAI } from "@google/genai";
+import { ai } from "@/lib/ai";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { NextResponse } from "next/server";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -31,7 +30,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: DEFAULT_MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 

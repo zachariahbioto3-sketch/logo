@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { DEFAULT_MODEL, ALLOWED_MODELS } from "@/lib/models";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -30,11 +31,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { name, systemPrompt, defaultModel } = await req.json();
   if (!name?.trim() || !systemPrompt?.trim()) return NextResponse.json({ error: "Name and prompt required" }, { status: 400 });
 
+  if (defaultModel && !ALLOWED_MODELS.has(defaultModel)) {
+    return NextResponse.json({ error: "Invalid model selected" }, { status: 400 });
+  }
+
   const agent = await prisma.agent.create({
     data: {
       name: name.trim(),
       systemPrompt: systemPrompt.trim(),
-      defaultModel: defaultModel || "gemini-3.6-flash",
+      defaultModel: defaultModel || DEFAULT_MODEL,
       ownerId: session.user.id,
       companyId: id,
     },

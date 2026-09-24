@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { GoogleGenAI } from "@google/genai";
+import { ai } from "@/lib/ai";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { readFile } from "fs/promises";
 import { urlToFilePath } from "@/lib/uploads";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -53,7 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const systemPrompt = contextLines.length ? basePrompt + "\n\n" + contextLines.join(" ") : basePrompt;
 
-  const activeModel = model || "gemini-3.6-flash";
+  const activeModel = model || DEFAULT_MODEL;
 
   let lastUserParts: object[] = [];
 
