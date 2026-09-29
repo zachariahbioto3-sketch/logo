@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -199,3 +199,4 @@ model Flashcard {
   nextReview  DateTime @default(now())
   createdAt   DateTime @default(now())
 }
+

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nicole</string>
+    <string name="title_activity_main">Nicole</string>
+    <string name="package_name">com.nicole.app</string>
+    <string name="custom_url_scheme">com.nicole.app</string>
+</resources>

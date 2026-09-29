@@ -108,7 +108,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           data: { userId: session.user?.id as string, model: activeModel },
         });
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = err instanceof Error ? err.message : String(err); console.error("GEMINI ERROR:", message);
         const isRateLimit = message.includes("429") || message.toLowerCase().includes("quota") || message.toLowerCase().includes("resource_exhausted");
         const isOverloaded = message.includes("503") || message.toLowerCase().includes("overloaded") || message.toLowerCase().includes("unavailable");
 

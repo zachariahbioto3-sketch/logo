@@ -87,3 +87,38 @@ body {
 body {
   font-size: var(--nicole-font-size, 15px);
 }
+[data-theme="dark"] .prose,
+[data-theme="system"] .prose {
+  --tw-prose-body: #f0f0f0;
+  --tw-prose-headings: #f0f0f0;
+  --tw-prose-lead: #cccccc;
+  --tw-prose-links: #c4855a;
+  --tw-prose-bold: #f0f0f0;
+  --tw-prose-counters: #999999;
+  --tw-prose-bullets: #999999;
+  --tw-prose-hr: #333333;
+  --tw-prose-quotes: #f0f0f0;
+  --tw-prose-quote-borders: #c4855a;
+  --tw-prose-captions: #999999;
+  --tw-prose-code: #f0f0f0;
+  --tw-prose-pre-code: #f0f0f0;
+  --tw-prose-pre-bg: #111111;
+  --tw-prose-th-borders: #333333;
+  --tw-prose-td-borders: #333333;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] .prose {
+    --tw-prose-body: #f0f0f0;
+    --tw-prose-headings: #f0f0f0;
+    --tw-prose-links: #c4855a;
+    --tw-prose-bold: #f0f0f0;
+    --tw-prose-bullets: #999999;
+    --tw-prose-counters: #999999;
+    --tw-prose-hr: #333333;
+    --tw-prose-code: #f0f0f0;
+    --tw-prose-pre-bg: #111111;
+    --tw-prose-th-borders: #333333;
+    --tw-prose-td-borders: #333333;
+  }
+}

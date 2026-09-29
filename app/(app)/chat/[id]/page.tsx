@@ -344,7 +344,7 @@ export default function ChatPage() {
                 className="text-xs text-[var(--nicole-text-muted)] bg-transparent outline-none"
               >
                 <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+                <option value="gemini-1.5-flash">Gemini 3.5 Flash-Lite</option>
               </select>
               <button
                 onClick={() => sendMessage()}
