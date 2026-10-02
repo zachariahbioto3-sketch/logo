@@ -1,27 +1,9 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-static";
 
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q") || "";
-
-  if (!q.trim()) return NextResponse.json([]);
-
-  const chats = await prisma.chat.findMany({
-    where: {
-      ownerId: session.user.id,
-      OR: [
-        { title: { contains: q } },
-        { messages: { some: { content: { contains: q } } } },
-      ],
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 15,
-  });
-
-  return NextResponse.json(chats);
-}
+export async function GET() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function POST() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PUT() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PATCH() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function DELETE() { return NextResponse.json({ ok: true, localMode: true }); }

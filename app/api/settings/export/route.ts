@@ -1,33 +1,9 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
+export const dynamic = "force-static";
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      chats: { include: { messages: true } },
-      projects: true,
-      tasks: true,
-      agents: true,
-      decks: { include: { cards: true } },
-      settings: true,
-    },
-  });
-
-  if (!user) return new Response("Not found", { status: 404 });
-
-  const { passwordHash, ...safeUser } = user;
-  void passwordHash;
-
-  const json = JSON.stringify(safeUser, null, 2);
-
-  return new Response(json, {
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Disposition": "attachment; filename=\"nicole-export.json\"",
-    },
-  });
-}
+export async function GET() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function POST() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PUT() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PATCH() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function DELETE() { return NextResponse.json({ ok: true, localMode: true }); }

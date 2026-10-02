@@ -1,9 +1,11 @@
+"use client";
+
 import QuickStart from "@/components/QuickStart";
 import ChatInput from "@/components/ChatInput";
-import { auth } from "@/auth";
+import { useSession } from "next-auth/react";
 
-export default async function Home() {
-  const session = await auth();
+export default function Home() {
+  const { data: session } = useSession();
   const firstName = session?.user?.name?.split(" ")[0] || "there";
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";

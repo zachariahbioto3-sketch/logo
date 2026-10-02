@@ -1,48 +1,11 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { DEFAULT_MODEL, ALLOWED_MODELS } from "@/lib/models";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-static";
 
-  const { id } = await params;
-  const membership = await prisma.groupMembership.findUnique({
-    where: { userId_groupId: { groupId: id, userId: session.user.id } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+export async function generateStaticParams() { return [{ id: 'default' }]; }
 
-  const agents = await prisma.agent.findMany({
-    where: { companyId: id },
-    orderBy: { createdAt: "desc" },
-  });
-  return NextResponse.json(agents);
-}
-
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { id } = await params;
-  const group = await prisma.company.findFirst({ where: { id, ownerId: session.user.id } });
-  if (!group) return NextResponse.json({ error: "Only the owner can add shared agents" }, { status: 403 });
-
-  const { name, systemPrompt, defaultModel } = await req.json();
-  if (!name?.trim() || !systemPrompt?.trim()) return NextResponse.json({ error: "Name and prompt required" }, { status: 400 });
-
-  if (defaultModel && !ALLOWED_MODELS.has(defaultModel)) {
-    return NextResponse.json({ error: "Invalid model selected" }, { status: 400 });
-  }
-
-  const agent = await prisma.agent.create({
-    data: {
-      name: name.trim(),
-      systemPrompt: systemPrompt.trim(),
-      defaultModel: defaultModel || DEFAULT_MODEL,
-      ownerId: session.user.id,
-      companyId: id,
-    },
-  });
-  return NextResponse.json(agent);
-}
+export async function GET() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function POST() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PUT() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PATCH() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function DELETE() { return NextResponse.json({ ok: true, localMode: true }); }

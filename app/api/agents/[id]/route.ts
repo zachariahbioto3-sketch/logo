@@ -1,12 +1,11 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-static";
 
-  const { id } = await params;
-  await prisma.agent.delete({ where: { id, ownerId: session.user.id } });
-  return NextResponse.json({ success: true });
-}
+export async function generateStaticParams() { return [{ id: 'default' }]; }
+
+export async function GET() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function POST() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PUT() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PATCH() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function DELETE() { return NextResponse.json({ ok: true, localMode: true }); }

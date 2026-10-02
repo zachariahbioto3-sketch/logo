@@ -151,6 +151,17 @@ export default function SettingsPage() {
       {tab === "AI" && (
         <div className="space-y-5">
           <div>
+            <label className="block text-xs font-medium mb-1.5">Gemini API Key</label>
+            <input
+              type="password"
+              value={settings.geminiApiKey || ""}
+              onChange={(e) => save({ geminiApiKey: e.target.value || null })}
+              placeholder="AIzaSy..."
+              className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]"
+            />
+            <p className="text-[11px] text-[var(--nicole-text-muted)] mt-1">Required for offline local AI chats on Android.</p>
+          </div>
+          <div>
             <label className="block text-xs font-medium mb-1.5">Default Model</label>
             <select value={settings.defaultModel} onChange={(e) => save({ defaultModel: e.target.value })}
               className="w-full text-sm border border-[var(--nicole-border)] rounded-xl px-3 py-2 outline-none bg-[var(--nicole-bg)]">

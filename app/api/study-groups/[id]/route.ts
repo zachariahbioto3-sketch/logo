@@ -1,68 +1,11 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-static";
 
-  const { id } = await params;
+export async function generateStaticParams() { return [{ id: 'default' }]; }
 
-  const membership = await prisma.groupMembership.findUnique({
-    where: { userId_groupId: { groupId: id, userId: session.user.id } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
-
-  const group = await prisma.company.findUnique({
-    where: { id },
-    include: {
-      members: {
-        include: { user: { select: { id: true, name: true, email: true } } },
-        orderBy: { joinedAt: "asc" },
-      },
-      agents: { orderBy: { createdAt: "desc" } },
-    },
-  });
-
-  if (!group) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ ...group, myRole: membership.role });
-}
-
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { id } = await params;
-  const { name } = await req.json();
-  if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
-
-  const group = await prisma.company.findFirst({ where: { id, ownerId: session.user.id } });
-  if (!group) return NextResponse.json({ error: "Not found or not owner" }, { status: 403 });
-
-  const updated = await prisma.company.update({ where: { id }, data: { name: name.trim() } });
-  return NextResponse.json(updated);
-}
-
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { id } = await params;
-  const group = await prisma.company.findFirst({ where: { id } });
-  if (!group) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  if (group.ownerId === session.user.id) {
-    await prisma.company.delete({ where: { id } });
-    return NextResponse.json({ success: true, action: "deleted" });
-  }
-
-  const membership = await prisma.groupMembership.findUnique({
-    where: { userId_groupId: { groupId: id, userId: session.user.id } },
-  });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
-
-  await prisma.groupMembership.delete({
-    where: { userId_groupId: { groupId: id, userId: session.user.id } },
-  });
-  return NextResponse.json({ success: true, action: "left" });
-}
+export async function GET() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function POST() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PUT() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function PATCH() { return NextResponse.json({ ok: true, localMode: true }); }
+export async function DELETE() { return NextResponse.json({ ok: true, localMode: true }); }

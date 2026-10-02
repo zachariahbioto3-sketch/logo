@@ -22,6 +22,7 @@ type Settings = {
   email: string;
   studyField: string | null;
   defaultModel: string;
+  geminiApiKey?: string | null;
 };
 
 const defaultSettings: Settings = {
@@ -43,7 +44,8 @@ const defaultSettings: Settings = {
   name: null,
   email: "",
   studyField: null,
-  defaultModel: "gemini-3.6-flash",
+  defaultModel: "gemini-2.0-flash",
+  geminiApiKey: null,
 };
 
 const SettingsContext = createContext<{
