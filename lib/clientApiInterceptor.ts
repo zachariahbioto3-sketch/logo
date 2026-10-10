@@ -18,6 +18,7 @@ import {
   LocalUser,
 } from "./localDb";
 import { GoogleGenAI } from "@google/genai";
+import { handleExtraApiRoute, messageParts } from "./clientApiExtra";
 
 let isInterceptorInitialized = false;
 
@@ -54,6 +55,9 @@ async function handleApiRoute(url: string, init?: RequestInit): Promise<Response
   const method = (init?.method || "GET").toUpperCase();
   const parsedUrl = new URL(url, "http://local");
   const pathname = parsedUrl.pathname;
+
+  const extra = await handleExtraApiRoute(url, init);
+  if (extra) return extra;
 
   // 1. NextAuth Session Mock
   if (pathname.startsWith("/api/auth/")) {
@@ -108,6 +112,9 @@ async function handleApiRoute(url: string, init?: RequestInit): Promise<Response
       chatId,
       role: "user",
       content: userContent,
+      attachmentUrl: body.attachmentUrl || null,
+      attachmentType: body.attachmentType || null,
+      attachmentName: body.attachmentName || null,
       createdAt: new Date().toISOString(),
     };
     await putItem("messages", userMsg);
@@ -133,9 +140,9 @@ async function handleApiRoute(url: string, init?: RequestInit): Promise<Response
     const allMsgs = await getByIndex<LocalMessage>("messages", "chatId", chatId);
     allMsgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    const contents = allMsgs.map((m) => ({
+    const contents = allMsgs.map((m, i) => ({
       role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
+      parts: messageParts(m, i === allMsgs.length - 1),
     }));
 
     // If no API Key configured, return polite fallback message
@@ -507,3 +514,4 @@ function jsonResponse(data: any, status = 200): Response {
     headers: { "Content-Type": "application/json" },
   });
 }
+
